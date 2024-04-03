@@ -47,11 +47,10 @@ def Hold_out(data, test_ratio):
 
     # 验证集划分
     for d in data:
-        if d[0] == '0':
+        if d[0] == 0:
             class0.append(d)
         else:
             class1.append(d)
-
     train_data = []
     test_data = []
 
@@ -73,4 +72,19 @@ def Hold_out(data, test_ratio):
 
 # 训练样本抽样times次的自助法
 def Bootstrapping(data, times):
-    return
+    if len(data) < times:
+        times = len(data) * 3 / 4
+
+    test_data = []  # 未出现在 train_data 中的数据
+    selected_index = []
+    for i in range(times):
+        selected_index.append(random.randint(0, len(data) - 1))
+
+    train_data = data[selected_index]
+
+    # 不在 selected_index 中的数据作为测试集
+    for i in range(len(data)):
+        if i not in selected_index:
+            test_data.append(data[i])
+
+    return np.array(train_data), np.array(test_data)
