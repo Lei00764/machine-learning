@@ -1,0 +1,220 @@
+---
+title: "数据预处理"
+author:
+  - 高珍
+documentclass: ctexart
+keywords:
+  - 中文
+  - R Markdown
+output:
+  rticles::ctex:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+---
+
+## missing data
+```{r find_missing_data}
+  library(mice)
+  x=iris
+  x[sample(1:nrow(x), 6),1 ] <- NA     
+  #随机在iris数据集第1列生成6行NA
+  colnames(x)<-c("SL","SW","PL","PW","SP")    
+  md.pattern(x) 
+```
+## outliers
+```{r outliers-1}
+  y<-boxplot.stats(x[,2], coef=1.5, do.conf=TRUE, do.out=TRUE)
+  boxplot(x[,2])               #绘制箱线图
+  y$stats
+  y$out
+```
+
+```{r outliers-2}
+  #寻找a为异常值的坐标位置
+  a<-which(x[,1] %in% boxplot.stats(x[,1])$out) 
+  #寻找b为异常值的坐标位置
+  b<-which(x[,2] %in% boxplot.stats(x[,2],coef=1.0)$out) 
+  df<-data.frame(x[,1], x[,2])
+  plot(df) #绘制x, y的散点图
+  p2<-union(a,b) #寻找变量x或y为异常值的坐标位置
+  points(df[p2,],col="red",pch="x",cex=2) #标记异常值
+```
+
+```{r outliers-3}
+  k<-kmeans(iris[,c(1,2)],centers=3) #kmeans聚类为3类
+  #k$cluster #输出聚类结果
+  #centers返回每个样本对应的聚类中心样本
+  centers <- k$centers[k$cluster, ]
+  #计算每个样本到其聚类中心的距离
+  distances<-sqrt(rowSums((iris[,1:2]-centers)^2))
+  #找到距离最大的6个样本，认为是异常值
+  out<-order(distances,decreasing=TRUE)[1:6]
+  plot(iris[,c(1,2)])
+  points(iris[out,c(1,2)],col="red",pch="x",cex=2) #标记异常值
+```
+
+```{r scale}  
+  data=iris[,1]
+  #summary(data)
+  data1=scale(data,center=T,scale=F)
+  #summary(data1)
+  data2=scale(data,center=F,scale=T)
+  #summary(data2)
+  data3=scale(data,center=T,scale=T)
+  #summary(data3)
+  par(mfrow=c(2,2))
+  hist(data,main="origin data",breaks = 20)
+  hist(data1,main="centered data",breaks = 20)
+  hist(data2,main="scaled data",breaks = 20)
+  hist(data3,main="centered & scaled data",breaks = 20)
+```
+
+
+```{r srot}  
+  data=data.frame(v1=c(1,3,2,5,4),v2=c('a','c','b','e','d')) 
+  #data frame对象 含有v1,v2两列
+  data[sort(data$v1,index.return=TRUE)$ix,]　　
+  #对data的数据按v1排列,v1须为numeric
+```
+
+```{r as.vector} 
+  (m=matrix(c(1,2,3,4),nrow=2))
+  as.vector(m)
+```
+
+```{r contingency_table_1}
+  (v=sample(letters[1:5],10,replace=TRUE))
+  (t=table(v))
+  length(t);names(t)
+```
+
+
+```{r contingency_table_2}
+  (a<-rep(letters[1:3],each=4))
+  (b<-sample(LETTERS[1:3],12,replace=T))
+  (t=table(a,b))
+  nrow(t);colnames(t);rownames(t)
+```
+
+
+```{r contingency_table_3}
+  library(vcd)
+  #风湿性关节炎新疗法的双盲临床实验
+  #Improved: 
+    #none: 无改善
+    #some: 一定程度改善
+    #marked：显著改善
+  #Treatment
+    #Treated: 用药治疗
+    #Placebo: 安慰剂治疗
+  head(Arthritis)
+```
+```{r contingency_table_4}
+  (mytable=with(Arthritis,table(Improved)))
+  prop.table(mytable)
+```
+
+```{r contingency_table_5}
+  (mytable=xtabs(~Treatment+Improved,data=Arthritis))
+  margin.table(mytable,1)
+  margin.table(mytable,2)
+```
+
+```{r contingency_table_6}
+  (mytable=xtabs(~Treatment+Improved,data=Arthritis))
+  prop.table(mytable,1)
+  prop.table(mytable,2)
+  prop.table(mytable)
+```
+
+
+```{r contingency_table_7}
+  (mytable=xtabs(~Treatment+Improved,data=Arthritis))
+  addmargins(mytable)
+  addmargins(prop.table(mytable))
+```
+
+
+```{r contingency_table_8}
+  (mytable=xtabs(~Treatment+Improved,data=Arthritis))
+  addmargins(prop.table(mytable,1),2)
+  addmargins(prop.table(mytable,2),1)
+```
+
+```{r unlist}  
+  l=list(c1=c(1,2,3),c2=c('a','b'),c3=data.frame(c31=c(4,5),c32=c('c','d')))
+  print(l)
+  unlist(l)
+```
+
+```{r aggregate-1}  
+ table(state.region)
+```
+
+```{r aggregate-2}  
+  aggregate(state.x77, list(Region = state.region), mean)
+```
+```{r aggregate-3}  
+  aggregate(state.x77,
+          list(Region = state.region,
+               Cold = state.x77[,"Frost"] > 130),
+          mean)
+```
+
+```{r aggregate-4}  
+  testDF <- data.frame(v1 = c(1,3,5,7,8,3,5,NA,4,5,7,9),
+                       v2 = c(11,33,55,77,88,33,55,NA,44,55,77,99) )
+  by1 <- c("red", "blue", 1, 2, NA, "big", 1, 2, "red", 1, NA, 12)
+  by2 <- c("wet", "dry", 99, 95, NA, "damp", 95, 99, "red", 99, NA, NA)
+  aggregate(x = testDF, by = list(by1, by2), FUN = "mean")
+``` 
+```{r aggregate-5} 
+  fby1 <- factor(by1, exclude = "")
+  fby2 <- factor(by2, exclude = "")
+  aggregate(x = testDF, by = list(fby1, fby2), FUN = "mean")
+```
+```{r aggregate-one~one} 
+  aggregate(weight ~ feed, data = chickwts, mean)
+```
+```{r aggregate-one~many} 
+  aggregate(breaks ~ wool + tension, data = warpbreaks, mean)
+```
+```{r aggregate-many~one} 
+  aggregate(cbind(Ozone, Temp) ~ Month, data = airquality, mean)
+```
+```{r aggregate-many~many} 
+  aggregate(cbind(ncases, ncontrols) ~ alcgp + tobgp, data = esoph, sum)
+```
+  
+```{r for_loop}   
+  set.seed(431) 
+  (mat43=replicate(4,sample(3,3)))
+  (mat43l=rep(0,4))
+  for (j in 1:4) {mat43l[j]=max(mat43[,j])} 
+  mat43l
+```
+
+```{r apply}   
+  apropos("apply")
+```
+
+
+```{r subset-1}  
+  df=data.frame(year=c(2000,2001,2000,2003,2001),                 month=c(1,2,3,4,5))
+  df
+```
+```{r subset-2}  
+  subset(df,year=='2000')
+  df[df$year==2000,]
+  df[which(df$year==2000),]
+```
+
+
+```{r NA}   
+  v=c(1,2,3,NA,4,NA,5)
+  print(v)
+  v[is.na(v)]=0
+  print(v)
+```
+

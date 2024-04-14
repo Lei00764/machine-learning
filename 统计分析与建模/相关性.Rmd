@@ -1,0 +1,87 @@
+---
+title: "cor"
+author: "gz"
+date: "9/25/2021"
+output: pdf_document
+---
+
+```{r cor}
+  x=rnorm(10)
+  y=1:10
+  cor(x,y,method = "pearson")
+  cor(x, y, method=c("pearson", "kendall", "spearman"))
+  cor(x, y,  method = "pearson", use = "complete.obs")
+```
+
+```{r cor}
+  res=cor.test(x, y,  method = "pearson", use = "complete.obs")
+str(res)
+summary(res)
+```
+
+```{r cor}
+  #cor()
+  library(dplyr)
+  colnames(mtcars)
+  my_data <- select(mtcars, mpg, disp, hp, drat, wt, qsec)
+  head(my_data)
+  (cor_1 <- round(cor(my_data), 2))
+```
+
+```{r cor}
+  library(Hmisc)
+  library(dplyr)
+  my_data <- select(mtcars, mpg, disp, hp, drat, wt, qsec)
+  (cor_2 <- rcorr(as.matrix(my_data)))
+```
+
+```{r cor}
+  cor_2$r #r
+  cor_2$P #pvalue
+```
+
+```{r cor}
+  cor_4 <- cor(mtcars[1:6])
+  symnum(cor_4, abbr.colnames = FALSE)
+```
+
+```{r cor:https://www.jianshu.com/p/273a787fafa5 }
+  M<-cor(mtcars)
+  require(corrplot)
+  corrplot(M, method = "circle")
+  corrplot(M, method = "ellipse")
+  corrplot(M, method = "pie")
+  corrplot(M, method = "color")
+  corrplot(M, method = "number")
+  corrplot(M, type = "upper")
+  corrplot(M, type = "lower")
+  corrplot(M, order = "hclust")
+  # Change background color to lightgreen and color of the circles to darkorange and steel blue
+  corrplot(M, type = "upper", order = "hclust", col = c("darkorange", "steelblue"),bg = "lightgreen")
+  # 标记出设定检验水平下有意义的点
+  cor_5 <- rcorr(as.matrix(mtcars))
+  M <- cor_5$r
+  p_mat <- cor_5$P
+  corrplot(M, type = "upper", order = "hclust", p.mat = p_mat, sig.level = 0.01)
+  
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
